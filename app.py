@@ -53,8 +53,8 @@ filtered_df = df.copy()
 if selected_values:
     filtered_df = filtered_df[filtered_df[filter_column].isin(selected_values)]
 
-if selected_villages:
-    filtered_df = filtered_df[filtered_df["village_marathi"].isin(selected_villages)]
+#if selected_villages:
+#    filtered_df = filtered_df[filtered_df["village_marathi"].isin(selected_villages)]
 
 if selected_talukas:
     filtered_df = filtered_df[filtered_df["taluka_marathi"].isin(selected_talukas)]
