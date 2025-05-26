@@ -28,9 +28,9 @@ unique_values = df[filter_column].dropna().unique()
 selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
 
 # --- Additional filters: village and taluka ---
-st.sidebar.header("🏡 Additional Filters")
-village_values = df['village_marathi'].dropna().unique()
-selected_villages = st.sidebar.multiselect("Select village(s)", village_values)
+# st.sidebar.header("🏡 Additional Filters")
+# village_values = df['village_marathi'].dropna().unique()
+# selected_villages = st.sidebar.multiselect("Select village(s)", village_values)
 
 taluka_values = df['taluka_marathi'].dropna().unique()
 selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
