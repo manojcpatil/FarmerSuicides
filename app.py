@@ -21,9 +21,23 @@ filter_column = st.sidebar.selectbox("Choose column to filter by", df.columns)
 unique_values = df[filter_column].dropna().unique()
 selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
 
+# --- Search box for column filtering ---
+search_term = st.sidebar.text_input("🔎 Search columns to export", "")
+
+# --- Show checkboxes only for matching columns ---
+matching_cols = [col for col in df.columns if search_term.lower() in col.lower()]
+
+st.sidebar.write("✅ Select Columns:")
+selected_columns = []
+
+for col in matching_cols:
+    if st.sidebar.checkbox(col, value=True):  # Default checked
+        selected_columns.append(col)
+
+
 # --- Column selection for export ---
-st.sidebar.header("📁 Columns to Export")
-selected_columns = st.sidebar.multiselect("Choose columns to include in Excel", df.columns, default=df.columns.tolist())
+# st.sidebar.header("📁 Columns to Export")
+# selected_columns = st.sidebar.multiselect("Choose columns to include in Excel", df.columns, default=df.columns.tolist())
 
 # --- Apply filters ---
 if selected_values:
