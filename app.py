@@ -14,37 +14,57 @@ df = load_data()
 
 st.title("📊 Filter & Export Survey Data")
 
-# --- Column filter selection ---
-st.sidebar.header("🔍 Filter Criteria")
+# --- Mandatory columns (always included in export) ---
+mandatory_columns = [
+    "farmer_id", "Priority", "farmers_name_marathi",
+    "village_marathi", "taluka_marathi", "informant_name", "informant_mobile"
+]
+
+# --- Sidebar filter options ---
+st.sidebar.header("🔍 Primary Filter Criteria")
 filter_column = st.sidebar.selectbox("Choose column to filter by", df.columns)
 
 unique_values = df[filter_column].dropna().unique()
 selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
 
-# --- Searchable checkboxes for export column selection ---
-st.sidebar.header("📁 Columns to Export")
-search_term = st.sidebar.text_input("🔎 Search columns", "")
+# --- Additional filters: village and taluka ---
+st.sidebar.header("🏡 Additional Filters")
+village_values = df['village_marathi'].dropna().unique()
+selected_villages = st.sidebar.multiselect("Select village(s)", village_values)
 
-matching_cols = [col for col in df.columns if search_term.lower() in col.lower()]
+taluka_values = df['taluka_marathi'].dropna().unique()
+selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
 
-st.sidebar.write("✅ Select Columns:")
+# --- Search + checkbox for export column selection ---
+st.sidebar.header("📁 Optional Columns to Export")
+search_term = st.sidebar.text_input("🔎 Search optional columns", "")
+
+optional_cols = [col for col in df.columns if col not in mandatory_columns]
+matching_cols = [col for col in optional_cols if search_term.lower() in col.lower()]
+
 selected_columns = []
-
 for col in matching_cols:
-    default_checked = "farmer_id" in col.lower()  # Only Farmer_ID is selected by default
-    if st.sidebar.checkbox(col, value=default_checked, key=col):
+    if st.sidebar.checkbox(col, value=False, key=col):  # Optional columns not selected by default
         selected_columns.append(col)
 
-# --- Apply filter logic ---
+# --- Apply filters ---
+filtered_df = df.copy()
+
 if selected_values:
-    filtered_df = df[df[filter_column].isin(selected_values)]
-else:
-    filtered_df = df.copy()
+    filtered_df = filtered_df[filtered_df[filter_column].isin(selected_values)]
 
-# --- Subset selected columns ---
-export_df = filtered_df[selected_columns] if selected_columns else filtered_df
+if selected_villages:
+    filtered_df = filtered_df[filtered_df["village_marathi"].isin(selected_villages)]
 
-# --- Display filtered table ---
+if selected_talukas:
+    filtered_df = filtered_df[filtered_df["taluka_marathi"].isin(selected_talukas)]
+
+# --- Final columns for export ---
+final_columns = mandatory_columns + selected_columns
+final_columns = [col for col in final_columns if col in filtered_df.columns]
+export_df = filtered_df[final_columns]
+
+# --- Show filtered data ---
 st.write(f"### Showing {len(export_df)} records")
 st.dataframe(export_df)
 
