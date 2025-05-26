@@ -21,18 +21,21 @@ filter_column = st.sidebar.selectbox("Choose column to filter by", df.columns)
 unique_values = df[filter_column].dropna().unique()
 selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
 
-# --- Search box + checkboxes for export column selection ---
+# --- Searchable checkboxes for export column selection ---
 st.sidebar.header("📁 Columns to Export")
 search_term = st.sidebar.text_input("🔎 Search columns", "")
 
 matching_cols = [col for col in df.columns if search_term.lower() in col.lower()]
 
+st.sidebar.write("✅ Select Columns:")
 selected_columns = []
+
 for col in matching_cols:
-    if st.sidebar.checkbox(col, value=True, key=col):  # maintain checkbox state
+    default_checked = "farmer_id" in col.lower()  # Only Farmer_ID is selected by default
+    if st.sidebar.checkbox(col, value=default_checked, key=col):
         selected_columns.append(col)
 
-# --- Apply filters ---
+# --- Apply filter logic ---
 if selected_values:
     filtered_df = df[df[filter_column].isin(selected_values)]
 else:
@@ -41,11 +44,11 @@ else:
 # --- Subset selected columns ---
 export_df = filtered_df[selected_columns] if selected_columns else filtered_df
 
-# --- Display table ---
+# --- Display filtered table ---
 st.write(f"### Showing {len(export_df)} records")
 st.dataframe(export_df)
 
-# --- Export as Excel ---
+# --- Export to Excel ---
 def convert_df_to_excel(df):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
