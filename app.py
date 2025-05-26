@@ -3,6 +3,17 @@ import pandas as pd
 import io
 import requests
 
+# --- Simple password protection for Streamlit Cloud ---
+def login():
+    st.markdown("## 🔒 Secure Access")
+    password_input = st.text_input("Enter Password:", type="password")
+    if password_input != st.secrets["password"]:
+        st.warning("Invalid password")
+        st.stop()
+
+login()
+
+
 # --- Load Excel file from GitHub ---
 @st.cache_data
 def load_data():
