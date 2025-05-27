@@ -23,7 +23,7 @@ def load_data():
 
 df = load_data()
 
-st.title("📊 Filter & Export Survey Data")
+st.title("📊 Record of Diseased Farmers with Codes")
 
 # --- Mandatory columns (always included in export) ---
 mandatory_columns = [
