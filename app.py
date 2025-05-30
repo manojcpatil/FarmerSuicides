@@ -67,7 +67,8 @@ selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
 st.sidebar.header("📁 Optional Columns to Export")
 search_term = st.sidebar.text_input("🔎 Search optional columns", "")
 
-optional_cols = [col for col in df.columns if col not in mandatory_columns]
+# optional_cols = [col for col in df.columns if col not in mandatory_columns]
+optional_cols = [col for col in df.columns if col not in mandatory_columns and '/' not in col]
 matching_cols = [col for col in optional_cols if search_term.lower() in col.lower()]
 
 selected_columns = []
