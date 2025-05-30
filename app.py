@@ -39,6 +39,9 @@ def load_data():
     return pd.read_excel(io.BytesIO(response.content))
 
 df = load_data()
+# --- Replace numeric priority with text labels ---
+df["Priority"] = df["Priority"].replace({1: "Top", 2: "Moderate", 3: "Less"})
+
 
 st.title("📊 Record of Deceased Farmers with Codes")
 
