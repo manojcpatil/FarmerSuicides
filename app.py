@@ -16,7 +16,7 @@ if not st.session_state.authenticated:
     if password_input:
         if password_input == st.secrets["password"]:
             st.session_state.authenticated = True
-            st.experimental_rerun()
+            st.rerun() 
         else:
             st.warning("Invalid password")
     st.stop()  # Stop rest of the app if not authenticated
