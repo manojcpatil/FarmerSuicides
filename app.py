@@ -3,16 +3,25 @@ import pandas as pd
 import io
 import requests
 
-# --- Simple password protection for Streamlit Cloud ---
+# --- Login function with state ---
 def login():
-    st.markdown("## 🔒 Secure Access")
-    password_input = st.text_input("Enter Password:", type="password")
-    if password_input != st.secrets["password"]:
-        st.warning("Invalid password")
-        st.stop()
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
 
-login()
+    if not st.session_state.authenticated:
+        st.markdown("## 🔒 Secure Access")
+        password_input = st.text_input("Enter Password:", type="password")
+        if password_input and password_input == st.secrets["password"]:
+            st.session_state.authenticated = True
+            st.experimental_rerun()
+        elif password_input:
+            st.warning("Invalid password")
+            st.stop()
+    else:
+        return True
 
+if not login():
+    st.stop()
 
 # --- Load Excel file from GitHub ---
 @st.cache_data
