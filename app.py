@@ -1,25 +1,34 @@
-
 import streamlit as st
 import pandas as pd
 import io
 import requests
 
+# --- Safe rerun helper ---
+def safe_rerun():
+    try:
+        st.rerun()
+    except AttributeError:
+        try:
+            st.experimental_rerun()
+        except AttributeError:
+            st.error("Streamlit version too old for rerun support.")
+            st.stop()
 
-# --- Secure login system ---
+# --- Simple session-based login ---
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
     st.markdown("## 🔒 Secure Access")
     password_input = st.text_input("Enter Password:", type="password")
-    
+
     if password_input:
         if password_input == st.secrets["password"]:
             st.session_state.authenticated = True
-            st.rerun() 
+            safe_rerun()  # ✅ Call version-safe rerun
         else:
             st.warning("Invalid password")
-    st.stop()  # Stop rest of the app if not authenticated
+    st.stop()
 
 
 # --- Load Excel file from GitHub ---
