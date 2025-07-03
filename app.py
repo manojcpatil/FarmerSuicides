@@ -52,18 +52,12 @@ mandatory_columns = [
 
 # --- Support columns from Support sheet ---
 support_columns = [
-    "Widow (Needy)","Job/Support", "OldAge",
+    "Widow (Needy)", "Gender", "Age", "Dependents", "Job/Support", "OldAge",
     "Child Edu", "Marriage", "Business / Shop", "Poultry", "Goat", "Dairy",
     "Garkul", "Health", "AgriEqui", "Shivankam", "Psychological", "SpecialChild"
 ]
 
 # --- Sidebar: Filters ---
-st.sidebar.header("🧩 Support Filter (Non-empty)")
-selected_support_columns = st.sidebar.multiselect(
-    "Select Support Criteria (non-empty rows only)", 
-    [col for col in support_columns if col in df.columns]
-)
-
 st.sidebar.header("🔍 Primary Filter Criteria")
 filter_column = st.sidebar.selectbox("Choose column to filter by", df.columns)
 unique_values = df[filter_column].dropna().unique()
@@ -116,3 +110,4 @@ st.download_button(
     file_name="filtered_survey_data.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
+
