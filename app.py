@@ -107,8 +107,6 @@ export_df = filtered_df[final_columns]
 st.write(f"### Showing {len(export_df)} records")
 st.dataframe(export_df)
 
-st.dataframe(export_df)
-
 # --- Excel export ---
 def convert_df_to_excel(df):
     output = io.BytesIO()
