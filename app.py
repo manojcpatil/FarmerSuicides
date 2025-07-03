@@ -14,14 +14,13 @@ def safe_rerun():
             st.error("Streamlit version too old for rerun support.")
             st.stop()
 
-# --- Simple session-based login ---
+# --- Session-based login ---
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
     st.markdown("## 🔒 Secure Access")
     password_input = st.text_input("Enter Password:", type="password")
-
     if password_input:
         if password_input == st.secrets["password"]:
             st.session_state.authenticated = True
@@ -44,69 +43,63 @@ df["Priority"] = df["Priority"].replace({1: "Top", 2: "Moderate", 3: "Less"})
 
 st.title("📊 Record of Deceased Farmers with Codes")
 
-# --- Mandatory columns ---
+# --- Column definitions ---
 mandatory_columns = [
     "farmer_id", "Priority", "farmers_name_marathi",
     "village_marathi", "taluka_marathi", "informant_name", "informant_mobile"
 ]
 
-# --- Support columns from "Support" sheet ---
 support_columns = [
     "Widow (Needy)", "Job/Support", "OldAge",
     "Child Edu", "Marriage", "Business / Shop", "Poultry", "Goat", "Dairy",
     "Garkul", "Health", "AgriEqui", "Shivankam", "Psychological", "SpecialChild"
 ]
 
-# --- STEP 1: Apply support filters ---
+# --- Support filter ---
 st.sidebar.header("🧩 Support Filter (Non-empty)")
-selected_support_columns = st.sidebar.selectbox(
+support_col = st.sidebar.selectbox(
     "Select Support Criteria (non-empty rows only)",
     [col for col in support_columns if col in df.columns]
 )
 
-filtered_df = df.copy()
-for col in selected_support_columns:
-    if col in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df[col].notna() & (filtered_df[col] != "")]
+filtered_df = df[df[support_col].notna() & (df[support_col] != "")].copy()
 
-
-# --- STEP 3: Apply other filters ---
+# --- Primary filter ---
 st.sidebar.header("🔍 Primary Filter Criteria")
 filter_column = st.sidebar.selectbox("Choose column to filter by", filtered_df.columns)
 unique_values = filtered_df[filter_column].dropna().unique()
 selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
 
-# --- STEP 2: Column selection (excluding mandatory) ---
-st.sidebar.header("📁 Columns to Export (Excluding Mandatory)")
-search_term = st.sidebar.text_input("🔎 Search optional columns", "")
-
-available_optional_columns = [col for col in filtered_df.columns if col not in mandatory_columns]
-matching_cols = [col for col in available_optional_columns if search_term.lower() in col.lower()]
-
-selected_columns = []
-for col in matching_cols:
-    if st.sidebar.checkbox(col, value=False, key=col):
-        selected_columns.append(col)
-
 if selected_values:
     filtered_df = filtered_df[filtered_df[filter_column].isin(selected_values)]
 
+# --- Taluka filter ---
 taluka_values = filtered_df['taluka_marathi'].dropna().unique()
 selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
 
 if selected_talukas:
     filtered_df = filtered_df[filtered_df["taluka_marathi"].isin(selected_talukas)]
 
-# --- STEP 4: Finalize export columns ---
+# --- Column selection ---
+st.sidebar.header("📁 Columns to Export (Excluding Mandatory)")
+search_term = st.sidebar.text_input("🔎 Search optional columns", "")
+available_optional_columns = [col for col in filtered_df.columns if col not in mandatory_columns]
+matching_cols = [col for col in available_optional_columns if search_term.lower() in col.lower()]
+
+selected_columns = [
+    col for col in matching_cols
+    if st.sidebar.checkbox(col, value=False, key=col)
+]
+
+# --- Finalize and display ---
 final_columns = mandatory_columns + selected_columns
 final_columns = [col for col in final_columns if col in filtered_df.columns]
 export_df = filtered_df[final_columns]
 
-# --- Show results ---
 st.write(f"### Showing {len(export_df)} records")
 st.dataframe(export_df)
 
-# --- Export to Excel ---
+# --- Excel export ---
 def convert_df_to_excel(df):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -114,6 +107,7 @@ def convert_df_to_excel(df):
     return output.getvalue()
 
 excel_data = convert_df_to_excel(export_df)
+
 st.download_button(
     label="📥 Download Filtered Data as Excel",
     data=excel_data,
