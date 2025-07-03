@@ -37,7 +37,7 @@ def load_data():
     xls = pd.ExcelFile(io.BytesIO(response.content))
     main_df = pd.read_excel(xls, sheet_name=0)
     job_df = pd.read_excel(xls, sheet_name="JobSupport")
-    health_df = pd.read_excel(xls, sheet_name="Health support")
+    health_df = pd.read_excel(xls, sheet_name="HealthSupport")
     return main_df, job_df, health_df
 
 df, job_support_df, health_support_df = load_data()
