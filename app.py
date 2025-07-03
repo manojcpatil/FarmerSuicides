@@ -41,7 +41,7 @@ def load_data():
 df = load_data()
 df["Priority"] = df["Priority"].replace({1: "Top", 2: "Moderate", 3: "Less"})
 
-st.title("📊 Record of Deceased Farmers with Codes")
+st.title("📊 Record of Deceased Farmers")
 
 # --- Column definitions ---
 mandatory_columns = [
@@ -63,6 +63,7 @@ support_col = st.sidebar.selectbox(
 )
 
 filtered_df = df[df[support_col].notna() & (df[support_col] != "")].copy()
+st.title("📊 Record of Deceased Farmers"+str(support_col))
 
 # --- Primary filter ---
 st.sidebar.header("🔍 Primary Filter Criteria")
