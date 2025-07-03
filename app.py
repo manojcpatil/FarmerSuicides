@@ -25,11 +25,10 @@ if not st.session_state.authenticated:
     if password_input:
         if password_input == st.secrets["password"]:
             st.session_state.authenticated = True
-            safe_rerun()  # ✅ Call version-safe rerun
+            safe_rerun()
         else:
             st.warning("Invalid password")
     st.stop()
-
 
 # --- Load Excel file from GitHub ---
 @st.cache_data
@@ -37,7 +36,7 @@ def load_data():
     url = "https://github.com/manojcpatil-students/PRERNA/raw/main/SurveyData.xlsx"
     response = requests.get(url)
     xls = pd.ExcelFile(io.BytesIO(response.content))
-    main_df = pd.read_excel(xls, sheet_name=0)  # Main data
+    main_df = pd.read_excel(xls, sheet_name=0)
     return main_df
 
 df = load_data()
@@ -51,74 +50,46 @@ mandatory_columns = [
     "village_marathi", "taluka_marathi", "informant_name", "informant_mobile"
 ]
 
-# --- Sidebar filter options ---
-st.sidebar.header("🔍 Primary Filter Criteria")
-filter_column = st.sidebar.selectbox("Choose column to filter by", df.columns)
-
-unique_values = df[filter_column].dropna().unique()
-selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
-
-# --- Additional filters: village and taluka ---
-# st.sidebar.header("🏡 Additional Filters")
-# village_values = df['village_marathi'].dropna().unique()
-# selected_villages = st.sidebar.multiselect("Select village(s)", village_values)
-
-taluka_values = df['taluka_marathi'].dropna().unique()
-selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
-
-# --- Support-based column filters (non-empty logic) ---
-st.sidebar.header("🧩 Support Filter (Non-empty)")
-
-# These are your fixed support columns from the "Support" sheet
+# --- Support columns from Support sheet ---
 support_columns = [
     "Widow (Needy)", "Gender", "Age", "Dependents", "Job/Support", "OldAge",
     "Child Edu", "Marriage", "Business / Shop", "Poultry", "Goat", "Dairy",
     "Garkul", "Health", "AgriEqui", "Shivankam", "Psychological", "SpecialChild"
 ]
 
-# Let user choose one or more support columns
+# --- Sidebar: Filters ---
+st.sidebar.header("🔍 Primary Filter Criteria")
+filter_column = st.sidebar.selectbox("Choose column to filter by", df.columns)
+unique_values = df[filter_column].dropna().unique()
+selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
+
+taluka_values = df['taluka_marathi'].dropna().unique()
+selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
+
+st.sidebar.header("🧩 Support Filter (Non-empty)")
 selected_support_columns = st.sidebar.multiselect(
-    "Select Support Criteria (will include only non-empty rows)", 
-    support_columns
+    "Select Support Criteria (non-empty rows only)", 
+    [col for col in support_columns if col in df.columns]
 )
 
-
-# --- Search + checkbox for export column selection ---
-st.sidebar.header("📁 Optional Columns to Export")
-search_term = st.sidebar.text_input("🔎 Search optional columns", "")
-
-
-
-optional_cols = [col for col in df.columns if col not in mandatory_columns]
-matching_cols = [col for col in optional_cols if search_term.lower() in col.lower()]
-
-selected_columns = []
-for col in matching_cols:
-    if st.sidebar.checkbox(col, value=False, key=col):  # Optional columns not selected by default
-        selected_columns.append(col)
-        
-# optional_cols += selected_support_columns
-
-# --- Apply filters ---
+# --- Filtered DataFrame logic ---
 filtered_df = df.copy()
 
 if selected_values:
     filtered_df = filtered_df[filtered_df[filter_column].isin(selected_values)]
 
-#if selected_villages:
-#    filtered_df = filtered_df[filtered_df["village_marathi"].isin(selected_villages)]
-
 if selected_talukas:
     filtered_df = filtered_df[filtered_df["taluka_marathi"].isin(selected_talukas)]
 
-# --- Apply support filters (non-empty only) ---
 for col in selected_support_columns:
-    filtered_df = filtered_df[filtered_df[col].notna() & (filtered_df[col] != "")]
+    if col in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df[col].notna() & (filtered_df[col] != "")]
 
-
-# --- Final columns for export ---
-final_columns = mandatory_columns + selected_columns
+# --- Select all remaining columns (excluding mandatory)
+optional_columns = [col for col in df.columns if col not in mandatory_columns]
+final_columns = mandatory_columns + optional_columns
 final_columns = [col for col in final_columns if col in filtered_df.columns]
+
 export_df = filtered_df[final_columns]
 
 # --- Show filtered data ---
