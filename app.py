@@ -56,9 +56,9 @@ support_columns = [
 ]
 
 # --- Support filter ---
-st.sidebar.header("🧩 Support Filter (Non-empty)")
+st.sidebar.header("🧩 Support Filter")
 support_col = st.sidebar.selectbox(
-    "Select Support Criteria (non-empty rows only)",
+    "Select Support Criteria",
     [col for col in support_columns if col in df.columns]
 )
 
