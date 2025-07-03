@@ -52,7 +52,7 @@ mandatory_columns = [
 
 # --- Support columns from "Support" sheet ---
 support_columns = [
-    "Widow (Needy)", "Gender", "Age", "Dependents", "Job/Support", "OldAge",
+    "Widow (Needy)", "Dependents", "Job/Support", "OldAge",
     "Child Edu", "Marriage", "Business / Shop", "Poultry", "Goat", "Dairy",
     "Garkul", "Health", "AgriEqui", "Shivankam", "Psychological", "SpecialChild"
 ]
@@ -69,6 +69,13 @@ for col in selected_support_columns:
     if col in filtered_df.columns:
         filtered_df = filtered_df[filtered_df[col].notna() & (filtered_df[col] != "")]
 
+
+# --- STEP 3: Apply other filters ---
+st.sidebar.header("🔍 Primary Filter Criteria")
+filter_column = st.sidebar.selectbox("Choose column to filter by", filtered_df.columns)
+unique_values = filtered_df[filter_column].dropna().unique()
+selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
+
 # --- STEP 2: Column selection (excluding mandatory) ---
 st.sidebar.header("📁 Columns to Export (Excluding Mandatory)")
 search_term = st.sidebar.text_input("🔎 Search optional columns", "")
@@ -80,12 +87,6 @@ selected_columns = []
 for col in matching_cols:
     if st.sidebar.checkbox(col, value=False, key=col):
         selected_columns.append(col)
-
-# --- STEP 3: Apply other filters ---
-st.sidebar.header("🔍 Primary Filter Criteria")
-filter_column = st.sidebar.selectbox("Choose column to filter by", filtered_df.columns)
-unique_values = filtered_df[filter_column].dropna().unique()
-selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
 
 if selected_values:
     filtered_df = filtered_df[filtered_df[filter_column].isin(selected_values)]
