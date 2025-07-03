@@ -58,6 +58,12 @@ support_columns = [
 ]
 
 # --- Sidebar: Filters ---
+st.sidebar.header("🧩 Support Filter (Non-empty)")
+selected_support_columns = st.sidebar.multiselect(
+    "Select Support Criteria (non-empty rows only)", 
+    [col for col in support_columns if col in df.columns]
+)
+
 st.sidebar.header("🔍 Primary Filter Criteria")
 filter_column = st.sidebar.selectbox("Choose column to filter by", df.columns)
 unique_values = df[filter_column].dropna().unique()
