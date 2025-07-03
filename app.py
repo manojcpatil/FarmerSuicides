@@ -29,18 +29,15 @@ if not st.session_state.authenticated:
             st.warning("Invalid password")
     st.stop()
 
-# --- Update load_data to return additional sheets ---
+# --- Load Excel file from GitHub ---
 @st.cache_data
 def load_data():
     url = "https://github.com/manojcpatil-students/PRERNA/raw/main/SurveyData.xlsx"
     response = requests.get(url)
     xls = pd.ExcelFile(io.BytesIO(response.content))
     main_df = pd.read_excel(xls, sheet_name=0)
-    
-    # Load additional sheets if needed later
     job_df = pd.read_excel(xls, sheet_name="JobSupport")
     health_df = pd.read_excel(xls, sheet_name="Health support")
-    
     return main_df, job_df, health_df
 
 df, job_support_df, health_support_df = load_data()
@@ -60,22 +57,15 @@ support_columns = [
 
 # --- Support filter ---
 st.sidebar.header("🧩 Support Filter")
-
-# Add "All" at the top of the list
 support_options = ["All"] + [col for col in support_columns if col in df.columns]
+support_col = st.sidebar.selectbox("Select Support Criteria", support_options)
 
-support_col = st.sidebar.selectbox(
-    "Select Support Criteria",
-    support_options
-)
-
-# Apply filter only if user selected a specific support column
 if support_col != "All":
     filtered_df = df[df[support_col].notna() & (df[support_col] != "")].copy()
 else:
     filtered_df = df.copy()
 
-st.title("📊 Record of Deceased Farmers: "+str(support_col)+" Support")
+st.title("📊 Record of Deceased Farmers: " + str(support_col) + " Support")
 
 # --- Primary filter ---
 st.sidebar.header("🔍 Primary Filter Criteria")
@@ -104,12 +94,35 @@ selected_columns = [
     if st.sidebar.checkbox(col, value=False, key=col)
 ]
 
+# --- Finalize and display ---
+final_columns = mandatory_columns + selected_columns
+final_columns = [col for col in final_columns if col in filtered_df.columns]
+export_df = filtered_df[final_columns]
 
-# --- Conditionally show additional sheet based on support_col ---
+st.write(f"### Showing {len(export_df)} records")
+st.dataframe(export_df)
+
+# --- Excel export function ---
+def convert_df_to_excel(df):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, sheet_name='FilteredData')
+    return output.getvalue()
+
+# --- Download button for filtered main data ---
+excel_data = convert_df_to_excel(export_df)
+st.download_button(
+    label="📥 Download Filtered Data as Excel",
+    data=excel_data,
+    file_name="filtered_survey_data.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+
+# --- Conditional section for additional tables ---
 if support_col == "Job/Support":
     st.subheader("🧾 Additional Information: Job Support Details")
     st.dataframe(job_support_df)
-    
+
     job_excel = convert_df_to_excel(job_support_df)
     st.download_button(
         label="📥 Download Job Support Table",
@@ -121,7 +134,7 @@ if support_col == "Job/Support":
 elif support_col == "Health":
     st.subheader("🧾 Additional Information: Health Support Details")
     st.dataframe(health_support_df)
-    
+
     health_excel = convert_df_to_excel(health_support_df)
     st.download_button(
         label="📥 Download Health Support Table",
@@ -129,27 +142,3 @@ elif support_col == "Health":
         file_name="health_support_details.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
-# --- Finalize and display ---
-final_columns = mandatory_columns + selected_columns
-final_columns = [col for col in final_columns if col in filtered_df.columns]
-export_df = filtered_df[final_columns]
-
-st.write(f"### Showing {len(export_df)} records")
-st.dataframe(export_df)
-
-# --- Excel export ---
-def convert_df_to_excel(df):
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False, sheet_name='FilteredData')
-    return output.getvalue()
-
-excel_data = convert_df_to_excel(export_df)
-
-st.download_button(
-    label="📥 Download Filtered Data as Excel",
-    data=excel_data,
-    file_name="filtered_survey_data.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
