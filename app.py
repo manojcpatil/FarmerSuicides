@@ -52,7 +52,7 @@ mandatory_columns = [
 
 # --- Support columns from Support sheet ---
 support_columns = [
-    "Widow (Needy)", "Gender", "Age", "Dependents", "Job/Support", "OldAge",
+    "Widow (Needy)","Job/Support", "OldAge",
     "Child Edu", "Marriage", "Business / Shop", "Poultry", "Goat", "Dairy",
     "Garkul", "Health", "AgriEqui", "Shivankam", "Psychological", "SpecialChild"
 ]
