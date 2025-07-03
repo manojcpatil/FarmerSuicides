@@ -111,8 +111,7 @@ if selected_talukas:
 
 # --- Apply support filters (non-empty only) ---
 for col in selected_support_columns:
-    if col in df.columns:
-        filtered_df = filtered_df[filtered_df[col].notna() & (filtered_df[col] != "")]
+    filtered_df = filtered_df[filtered_df[col].notna() or (filtered_df[col] != "")]
 
 # --- Final columns for export ---
 final_columns = mandatory_columns + selected_columns
