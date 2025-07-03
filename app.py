@@ -66,6 +66,23 @@ selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}
 taluka_values = df['taluka_marathi'].dropna().unique()
 selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
 
+# --- Support-based column filters (non-empty logic) ---
+st.sidebar.header("🧩 Support Filter (Non-empty)")
+
+# These are your fixed support columns from the "Support" sheet
+support_columns = [
+    "Widow (Needy)", "Gender", "Age", "Dependents", "Job/Support", "OldAge",
+    "Child Edu", "Marriage", "Business / Shop", "Poultry", "Goat", "Dairy",
+    "Garkul", "Health", "AgriEqui", "Shivankam", "Psychological", "SpecialChild"
+]
+
+# Let user choose one or more support columns
+selected_support_columns = st.sidebar.multiselect(
+    "Select Support Criteria (will include only non-empty rows)", 
+    support_columns
+)
+
+
 # --- Search + checkbox for export column selection ---
 st.sidebar.header("📁 Optional Columns to Export")
 search_term = st.sidebar.text_input("🔎 Search optional columns", "")
@@ -89,6 +106,11 @@ if selected_values:
 
 if selected_talukas:
     filtered_df = filtered_df[filtered_df["taluka_marathi"].isin(selected_talukas)]
+
+# --- Apply support filters (non-empty only) ---
+for col in selected_support_columns:
+    if col in df.columns:
+        filtered_df = filtered_df[filtered_df[col].notna() & (filtered_df[col] != "")]
 
 # --- Final columns for export ---
 final_columns = mandatory_columns + selected_columns
