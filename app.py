@@ -38,7 +38,7 @@ def load_data():
     response = requests.get(url)
     xls = pd.ExcelFile(io.BytesIO(response.content))
     main_df = pd.read_excel(xls, sheet_name=0)  # Main data
-    support_df = pd.read_excel(xls, sheet_name='support')  # Support columns info
+    support_df = pd.read_excel(xls, sheet_name='Support')  # Support columns info
     return main_df, support_df
 
 df, support = load_data()
