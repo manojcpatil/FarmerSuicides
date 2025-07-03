@@ -61,7 +61,7 @@ support_col = st.sidebar.selectbox(
 )
 
 filtered_df = df[df[support_col].notna() & (df[support_col] != "")].copy()
-st.title("📊 Record of Deceased Farmers"+str(support_col))
+st.title("📊 Record of Deceased Farmers: "+str(support_col)+" Support")
 
 # --- Primary filter ---
 st.sidebar.header("🔍 Primary Filter Criteria")
