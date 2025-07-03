@@ -44,55 +44,64 @@ df["Priority"] = df["Priority"].replace({1: "Top", 2: "Moderate", 3: "Less"})
 
 st.title("📊 Record of Deceased Farmers with Codes")
 
-# --- Mandatory columns (always included in export) ---
+# --- Mandatory columns ---
 mandatory_columns = [
     "farmer_id", "Priority", "farmers_name_marathi",
     "village_marathi", "taluka_marathi", "informant_name", "informant_mobile"
 ]
 
-# --- Support columns from Support sheet ---
+# --- Support columns from "Support" sheet ---
 support_columns = [
     "Widow (Needy)", "Gender", "Age", "Dependents", "Job/Support", "OldAge",
     "Child Edu", "Marriage", "Business / Shop", "Poultry", "Goat", "Dairy",
     "Garkul", "Health", "AgriEqui", "Shivankam", "Psychological", "SpecialChild"
 ]
 
-# --- Sidebar: Filters ---
-st.sidebar.header("🔍 Primary Filter Criteria")
-filter_column = st.sidebar.selectbox("Choose column to filter by", df.columns)
-unique_values = df[filter_column].dropna().unique()
-selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
-
-taluka_values = df['taluka_marathi'].dropna().unique()
-selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
-
+# --- STEP 1: Apply support filters ---
 st.sidebar.header("🧩 Support Filter (Non-empty)")
 selected_support_columns = st.sidebar.multiselect(
-    "Select Support Criteria (non-empty rows only)", 
+    "Select Support Criteria (non-empty rows only)",
     [col for col in support_columns if col in df.columns]
 )
 
-# --- Filtered DataFrame logic ---
 filtered_df = df.copy()
-
-if selected_values:
-    filtered_df = filtered_df[filtered_df[filter_column].isin(selected_values)]
-
-if selected_talukas:
-    filtered_df = filtered_df[filtered_df["taluka_marathi"].isin(selected_talukas)]
-
 for col in selected_support_columns:
     if col in filtered_df.columns:
         filtered_df = filtered_df[filtered_df[col].notna() & (filtered_df[col] != "")]
 
-# --- Select all remaining columns (excluding mandatory)
-optional_columns = [col for col in df.columns if col not in mandatory_columns]
-final_columns = mandatory_columns + optional_columns
-final_columns = [col for col in final_columns if col in filtered_df.columns]
+# --- STEP 2: Column selection (excluding mandatory) ---
+st.sidebar.header("📁 Columns to Export (Excluding Mandatory)")
+search_term = st.sidebar.text_input("🔎 Search optional columns", "")
 
+available_optional_columns = [col for col in filtered_df.columns if col not in mandatory_columns]
+matching_cols = [col for col in available_optional_columns if search_term.lower() in col.lower()]
+
+selected_columns = []
+for col in matching_cols:
+    if st.sidebar.checkbox(col, value=False, key=col):
+        selected_columns.append(col)
+
+# --- STEP 3: Apply other filters ---
+st.sidebar.header("🔍 Primary Filter Criteria")
+filter_column = st.sidebar.selectbox("Choose column to filter by", filtered_df.columns)
+unique_values = filtered_df[filter_column].dropna().unique()
+selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}'", unique_values)
+
+if selected_values:
+    filtered_df = filtered_df[filtered_df[filter_column].isin(selected_values)]
+
+taluka_values = filtered_df['taluka_marathi'].dropna().unique()
+selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
+
+if selected_talukas:
+    filtered_df = filtered_df[filtered_df["taluka_marathi"].isin(selected_talukas)]
+
+# --- STEP 4: Finalize export columns ---
+final_columns = mandatory_columns + selected_columns
+final_columns = [col for col in final_columns if col in filtered_df.columns]
 export_df = filtered_df[final_columns]
 
-# --- Show filtered data ---
+# --- Show results ---
 st.write(f"### Showing {len(export_df)} records")
 st.dataframe(export_df)
 
@@ -110,4 +119,3 @@ st.download_button(
     file_name="filtered_survey_data.xlsx",
     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
-
