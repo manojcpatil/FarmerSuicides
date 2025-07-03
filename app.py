@@ -41,8 +41,6 @@ def load_data():
 df = load_data()
 df["Priority"] = df["Priority"].replace({1: "Top", 2: "Moderate", 3: "Less"})
 
-st.title("📊 Record of Deceased Farmers")
-
 # --- Column definitions ---
 mandatory_columns = [
     "farmer_id", "Priority", "farmers_name_marathi",
