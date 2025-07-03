@@ -95,7 +95,7 @@ for col in matching_cols:
     if st.sidebar.checkbox(col, value=False, key=col):  # Optional columns not selected by default
         selected_columns.append(col)
         
-optional_cols=optional_cols.append(selected_support_columns)
+optional_cols += selected_support_columns
 
 # --- Apply filters ---
 filtered_df = df.copy()
