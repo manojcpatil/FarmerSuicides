@@ -36,12 +36,13 @@ if not st.session_state.authenticated:
 def load_data():
     url = "https://github.com/manojcpatil-students/PRERNA/raw/main/SurveyData.xlsx"
     response = requests.get(url)
-    return pd.read_excel(io.BytesIO(response.content))
+    xls = pd.ExcelFile(io.BytesIO(response.content))
+    main_df = pd.read_excel(xls, sheet_name=0)  # Main data
+    support_df = pd.read_excel(xls, sheet_name='support')  # Support columns info
+    return main_df, support_df
 
-df = load_data()
-# --- Replace numeric priority with text labels ---
+df, support = load_data()
 df["Priority"] = df["Priority"].replace({1: "Top", 2: "Moderate", 3: "Less"})
-
 
 st.title("📊 Record of Deceased Farmers with Codes")
 
@@ -66,11 +67,21 @@ selected_values = st.sidebar.multiselect(f"Select value(s) from '{filter_column}
 taluka_values = df['taluka_marathi'].dropna().unique()
 selected_talukas = st.sidebar.multiselect("Select taluka(s)", taluka_values)
 
+# --- Additional support column filters ---
+st.sidebar.header("🧩 Support-Based Filters")
+
+support_filters = {}
+for support_col in support.columns:
+    if support_col in df.columns:  # Ensure the support column is in main df
+        non_empty_vals = df[support_col].dropna().unique()
+        selected_vals = st.sidebar.multiselect(f"Select from '{support_col}'", non_empty_vals, key=f"support_{support_col}")
+        if selected_vals:
+            support_filters[support_col] = selected_vals
+
 # --- Search + checkbox for export column selection ---
 st.sidebar.header("📁 Optional Columns to Export")
 search_term = st.sidebar.text_input("🔎 Search optional columns", "")
 
-# optional_cols = [col for col in df.columns if col not in mandatory_columns]
 optional_cols = [col for col in df.columns if col not in mandatory_columns and '/' not in col]
 matching_cols = [col for col in optional_cols if search_term.lower() in col.lower()]
 
@@ -90,6 +101,10 @@ if selected_values:
 
 if selected_talukas:
     filtered_df = filtered_df[filtered_df["taluka_marathi"].isin(selected_talukas)]
+
+# Apply support-based filters
+for col, values in support_filters.items():
+    filtered_df = filtered_df[filtered_df[col].isin(values)]
 
 # --- Final columns for export ---
 final_columns = mandatory_columns + selected_columns
