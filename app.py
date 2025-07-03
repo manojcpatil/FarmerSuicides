@@ -78,6 +78,16 @@ for support_col in support.columns:
         if selected_vals:
             support_filters[support_col] = selected_vals
 
+# Track selected support columns (checkboxes)
+selected_support_cols = []
+
+# Loop through support sheet columns (not df columns!)
+for support_col in support.columns:
+    if support_col in df.columns:  # Only process if the support column exists in df
+        if st.sidebar.checkbox(f"Has support: {support_col}", key=f"check_{support_col}"):
+            selected_support_cols.append(support_col)
+            
+
 # --- Search + checkbox for export column selection ---
 st.sidebar.header("📁 Optional Columns to Export")
 search_term = st.sidebar.text_input("🔎 Search optional columns", "")
