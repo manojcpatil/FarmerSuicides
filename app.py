@@ -55,12 +55,21 @@ support_columns = [
 
 # --- Support filter ---
 st.sidebar.header("🧩 Support Filter")
+
+# Add "All" at the top of the list
+support_options = ["All"] + [col for col in support_columns if col in df.columns]
+
 support_col = st.sidebar.selectbox(
     "Select Support Criteria",
-    [col for col in support_columns if col in df.columns]
+    support_options
 )
 
-filtered_df = df[df[support_col].notna() & (df[support_col] != "")].copy()
+# Apply filter only if user selected a specific support column
+if support_col != "All":
+    filtered_df = df[df[support_col].notna() & (df[support_col] != "")].copy()
+else:
+    filtered_df = df.copy()
+
 st.title("📊 Record of Deceased Farmers: "+str(support_col)+" Support")
 
 # --- Primary filter ---
